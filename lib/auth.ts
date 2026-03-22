@@ -1,10 +1,13 @@
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { env } from "@/lib/env";
+import { getJwtSecret } from "@/lib/env";
 
 export const SESSION_COOKIE = "admin_session";
-const secret = new TextEncoder().encode(env.jwtSecret);
+
+function getJwtKey() {
+  return new TextEncoder().encode(getJwtSecret());
+}
 
 type SessionPayload = {
   adminId: string;
@@ -16,11 +19,11 @@ export async function createSessionToken(payload: SessionPayload) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(secret);
+    .sign(getJwtKey());
 }
 
 export async function verifySessionToken(token: string) {
-  const { payload } = await jwtVerify(token, secret);
+  const { payload } = await jwtVerify(token, getJwtKey());
   return payload as SessionPayload;
 }
 

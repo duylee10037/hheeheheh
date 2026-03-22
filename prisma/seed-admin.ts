@@ -1,20 +1,22 @@
 import bcrypt from "bcryptjs";
-import { env } from "../lib/env";
+import { getAdminPassword, getAdminUsername } from "../lib/env";
 import { prisma } from "../lib/prisma";
 
 async function main() {
-  const passwordHash = await bcrypt.hash(env.adminPassword, 12);
+  const username = getAdminUsername();
+  const password = getAdminPassword();
+  const passwordHash = await bcrypt.hash(password, 12);
 
   await prisma.admin.upsert({
-    where: { username: env.adminUsername },
+    where: { username },
     update: { passwordHash },
     create: {
-      username: env.adminUsername,
+      username,
       passwordHash,
     },
   });
 
-  console.log(`Admin ready: ${env.adminUsername}`);
+  console.log(`Admin ready: ${username}`);
 }
 
 main()
