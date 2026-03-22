@@ -15,22 +15,27 @@ export function LoginForm() {
     setError("");
     setLoading(true);
 
-    const response = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-    const data = await response.json();
+      const data = await response.json().catch(() => null);
 
-    if (!response.ok) {
-      setError(data.message || "Đăng nhập thất bại");
+      if (!response.ok) {
+        setError(data?.message || "Đăng nhập thất bại");
+        return;
+      }
+
+      router.push("/admin/licenses");
+      router.refresh();
+    } catch {
+      setError("Không thể kết nối tới máy chủ");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push("/admin/licenses");
-    router.refresh();
   }
 
   return (
