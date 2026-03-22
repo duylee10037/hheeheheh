@@ -53,9 +53,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("POST /api/admin/login failed", {
+    console.error("LOGIN_ROUTE_ERROR:", {
       error,
       hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+      hasPostgresPrismaDatabaseUrl: Boolean(
+        process.env.POSTGRES_PRISMA_DATABASE_URL,
+      ),
+      hasPostgresUrl: Boolean(process.env.POSTGRES_URL),
       hasJwtSecret: Boolean(process.env.JWT_SECRET),
       hasAdminUsername: Boolean(process.env.ADMIN_USERNAME),
     });

@@ -8,7 +8,18 @@ function required(name: string) {
 }
 
 export function getDatabaseUrl() {
-  return required("DATABASE_URL");
+  const value =
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_PRISMA_DATABASE_URL ||
+    process.env.POSTGRES_URL;
+
+  if (!value) {
+    throw new Error(
+      "Missing database URL. Set DATABASE_URL or use a supported Vercel Postgres variable.",
+    );
+  }
+
+  return value;
 }
 
 export function getJwtSecret() {
