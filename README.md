@@ -69,6 +69,13 @@ npm run prisma:migrate
 npm run seed-admin
 ```
 
+Project đã có sẵn migration `init`, nên với production bạn chỉ cần:
+
+```bash
+npm run prisma:deploy
+npm run seed-admin
+```
+
 ## Chạy local
 
 ```bash
@@ -93,7 +100,7 @@ Mở:
 5. Sau deploy đầu tiên, chạy migrate:
 
 ```bash
-npx prisma migrate deploy
+npm run prisma:deploy
 npm run seed-admin
 ```
 
