@@ -1,15 +1,16 @@
 # Simple License Key Web
 
-Web app full-stack tối giản để quản lý license key cho file Python desktop/script.
+Web app full-stack toi gian de quan ly license key cho file Python desktop/script.
 
-## Kiến trúc ngắn gọn
+## Kien truc ngan gon
 
-- `Next.js App Router` làm cả UI admin và API.
-- `Prisma + Postgres` lưu admin và license.
-- `Cookie httpOnly + JWT` giữ session admin.
-- `POST /api/verify` nhận `license_key` và `machine_code`, tự bind ở lần verify đầu tiên.
+- `Next.js App Router` lam ca UI admin va API.
+- `Prisma + Postgres` luu admin va license.
+- `Cookie httpOnly + JWT` giu session admin.
+- `POST /api/verify` nhan `license_key` va `machine_code`, tu bind o lan verify dau tien.
+- `POST /api/admin/login` chi dang nhap, khong tu tao admin.
 
-## Cấu trúc thư mục
+## Cau truc thu muc
 
 ```text
 .
@@ -34,12 +35,14 @@ Web app full-stack tối giản để quản lý license key cho file Python des
 │  ├─ license-dashboard.tsx
 │  └─ login-form.tsx
 ├─ lib/
+│  ├─ admin.ts
 │  ├─ auth.ts
 │  ├─ env.ts
 │  ├─ licenses.ts
 │  ├─ prisma.ts
 │  └─ validators.ts
 ├─ prisma/
+│  ├─ migrations/
 │  ├─ schema.prisma
 │  └─ seed-admin.ts
 ├─ proxy.ts
@@ -47,13 +50,13 @@ Web app full-stack tối giản để quản lý license key cho file Python des
 └─ .env.example
 ```
 
-## Cài đặt
+## Cai dat
 
 ```bash
 npm install
 ```
 
-Tạo file `.env` từ `.env.example`, rồi điền:
+Tao file `.env` tu `.env.example`, roi dien:
 
 ```env
 DATABASE_URL="your-postgres-url"
@@ -62,49 +65,73 @@ ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="your-password"
 ```
 
-## Migrate và tạo admin
+## Flow dung de setup va deploy
+
+1. Set env.
+2. Chay migrate.
+3. Chay seed admin.
+4. Deploy va dang nhap.
+
+Local:
 
 ```bash
 npm run prisma:migrate
 npm run seed-admin
+npm run dev
 ```
 
-Project đã có sẵn migration `init`, nên với production bạn chỉ cần:
+Production:
 
 ```bash
 npm run prisma:deploy
 npm run seed-admin
 ```
 
-## Chạy local
+Route login khong tu tao admin nua. Neu DB chua co admin, ban phai chay seed truoc.
+
+## Chay local
 
 ```bash
 npm run dev
 ```
 
-Mở:
+Mo:
 
 - `http://localhost:3000/login`
 - `http://localhost:3000/admin/licenses`
 
 ## Deploy Vercel
 
-1. Push source code lên GitHub.
-2. Import project vào Vercel.
-3. Tạo Postgres riêng của bạn, lấy `DATABASE_URL`.
-4. Set các biến môi trường trên Vercel:
+1. Push source code len GitHub.
+2. Import project vao Vercel.
+3. Tao Postgres rieng cua ban va lay `DATABASE_URL`.
+4. Set cac bien moi truong tren Vercel:
    - `DATABASE_URL`
    - `JWT_SECRET`
    - `ADMIN_USERNAME`
    - `ADMIN_PASSWORD`
-5. Sau deploy đầu tiên, chạy migrate:
+5. Chay migrate production:
 
 ```bash
 npm run prisma:deploy
+```
+
+6. Chay seed admin:
+
+```bash
 npm run seed-admin
 ```
 
-Bạn có thể chạy 2 lệnh trên bằng local terminal với env production, hoặc tạo một Vercel job/manual command tùy cách deploy của bạn.
+7. Dang nhap bang `ADMIN_USERNAME` va `ADMIN_PASSWORD`.
+
+## Loi 500 pho bien khi login
+
+- `DATABASE_URL` sai hoac database khong ket noi duoc.
+- Database production chua duoc migrate.
+- Chua chay `npm run seed-admin`.
+- Thieu `JWT_SECRET`.
+
+Khi can debug tren Vercel, xem log cua route `POST /api/admin/login`.
 
 ## API verify
 
@@ -122,18 +149,18 @@ Content-Type: application/json
 }
 ```
 
-Response mẫu:
+Response mau:
 
 ```json
 {
   "valid": true,
-  "message": "License hợp lệ",
+  "message": "License hop le",
   "expires_at": null,
   "bound": true
 }
 ```
 
-## Python client mẫu
+## Python client mau
 
 ```python
 import hashlib
@@ -175,7 +202,7 @@ def verify_license(api_url, license_key):
         print(data.get("message", "Xac minh license that bai"))
         sys.exit()
 
-    print("Key khả dụng. Bắt đầu chạy tool...")
+    print("Key kha dung. Bat dau chay tool...")
     return True
 
 

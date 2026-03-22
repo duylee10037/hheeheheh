@@ -2,20 +2,17 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createSessionToken, SESSION_COOKIE } from "@/lib/auth";
-import { ensureAdminExists } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validators";
 
 export async function POST(request: Request) {
   try {
-    await ensureAdminExists();
-
     const body = await request.json().catch(() => null);
     const parsed = loginSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { message: "Dữ liệu đăng nhập không hợp lệ" },
+        { message: "Du lieu dang nhap khong hop le" },
         { status: 400 },
       );
     }
@@ -26,7 +23,7 @@ export async function POST(request: Request) {
 
     if (!admin) {
       return NextResponse.json(
-        { message: "Sai tài khoản hoặc mật khẩu" },
+        { message: "Sai tai khoan hoac mat khau" },
         { status: 401 },
       );
     }
@@ -35,7 +32,7 @@ export async function POST(request: Request) {
 
     if (!matched) {
       return NextResponse.json(
-        { message: "Sai tài khoản hoặc mật khẩu" },
+        { message: "Sai tai khoan hoac mat khau" },
         { status: 401 },
       );
     }
@@ -56,9 +53,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Admin login failed:", error);
+    console.error("POST /api/admin/login failed", {
+      error,
+      hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+      hasJwtSecret: Boolean(process.env.JWT_SECRET),
+      hasAdminUsername: Boolean(process.env.ADMIN_USERNAME),
+    });
+
     return NextResponse.json(
-      { message: "Không thể đăng nhập lúc này" },
+      { message: "Khong the dang nhap luc nay" },
       { status: 500 },
     );
   }

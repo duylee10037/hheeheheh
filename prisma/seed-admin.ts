@@ -1,27 +1,18 @@
-import bcrypt from "bcryptjs";
-import { getAdminPassword, getAdminUsername } from "../lib/env";
+import { seedAdminFromEnv } from "../lib/admin";
 import { prisma } from "../lib/prisma";
 
 async function main() {
-  const username = getAdminUsername();
-  const password = getAdminPassword();
-  const passwordHash = await bcrypt.hash(password, 12);
-
-  await prisma.admin.upsert({
-    where: { username },
-    update: { passwordHash },
-    create: {
-      username,
-      passwordHash,
-    },
-  });
-
-  console.log(`Admin ready: ${username}`);
+  const result = await seedAdminFromEnv();
+  console.log(
+    result.created
+      ? `Admin created: ${result.admin.username}`
+      : `Admin already exists: ${result.admin.username}`,
+  );
 }
 
 main()
   .catch((error) => {
-    console.error(error);
+    console.error("Seed admin failed:", error);
     process.exit(1);
   })
   .finally(async () => {
