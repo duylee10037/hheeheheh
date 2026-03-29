@@ -1,6 +1,6 @@
 # Simple License Key Web
 
-Web app full-stack toi gian de quan ly license key cho file Python desktop/script.
+Web app full-stack toi gian de quan ly license key cho file Python desktop/script va flow Android get key.
 
 ## Kien truc ngan gon
 
@@ -8,46 +8,48 @@ Web app full-stack toi gian de quan ly license key cho file Python desktop/scrip
 - `Prisma + Postgres` luu admin va license.
 - `Cookie httpOnly + JWT` giu session admin.
 - `POST /api/verify` nhan `license_key` va `machine_code`, tu bind o lan verify dau tien.
+- `POST /connect` va `POST /api/connect` tuong thich flow Android get key, nhan `game`, `user_key`, `serial` dang `application/x-www-form-urlencoded`.
 - `POST /api/admin/login` chi dang nhap, khong tu tao admin.
 
 ## Cau truc thu muc
 
 ```text
 .
-├─ app/
-│  ├─ admin/licenses/page.tsx
-│  ├─ api/
-│  │  ├─ admin/
-│  │  │  ├─ login/route.ts
-│  │  │  ├─ logout/route.ts
-│  │  │  └─ licenses/
-│  │  │     ├─ route.ts
-│  │  │     └─ [id]/
-│  │  │        ├─ route.ts
-│  │  │        ├─ toggle/route.ts
-│  │  │        └─ clear-binding/route.ts
-│  │  └─ verify/route.ts
-│  ├─ login/page.tsx
-│  ├─ globals.css
-│  ├─ layout.tsx
-│  └─ page.tsx
-├─ components/
-│  ├─ license-dashboard.tsx
-│  └─ login-form.tsx
-├─ lib/
-│  ├─ admin.ts
-│  ├─ auth.ts
-│  ├─ env.ts
-│  ├─ licenses.ts
-│  ├─ prisma.ts
-│  └─ validators.ts
-├─ prisma/
-│  ├─ migrations/
-│  ├─ schema.prisma
-│  └─ seed-admin.ts
-├─ proxy.ts
-├─ package.json
-└─ .env.example
+|-- app/
+|   |-- admin/licenses/page.tsx
+|   |-- api/
+|   |   |-- admin/
+|   |   |   |-- login/route.ts
+|   |   |   |-- logout/route.ts
+|   |   |   `-- licenses/
+|   |   |      |-- route.ts
+|   |   |      `-- [id]/
+|   |   |         |-- route.ts
+|   |   |         |-- toggle/route.ts
+|   |   |         `-- clear-binding/route.ts
+|   |   `-- verify/route.ts
+|   |-- connect/route.ts
+|   |-- login/page.tsx
+|   |-- globals.css
+|   |-- layout.tsx
+|   `-- page.tsx
+|-- components/
+|   |-- license-dashboard.tsx
+|   `-- login-form.tsx
+|-- lib/
+|   |-- admin.ts
+|   |-- auth.ts
+|   |-- env.ts
+|   |-- license-verification.ts
+|   |-- licenses.ts
+|   |-- prisma.ts
+|   `-- validators.ts
+|-- prisma/
+|   |-- migrations/
+|   |-- schema.prisma
+|   `-- seed-admin.ts
+|-- proxy.ts
+`-- package.json
 ```
 
 ## Cai dat
@@ -56,14 +58,18 @@ Web app full-stack toi gian de quan ly license key cho file Python desktop/scrip
 npm install
 ```
 
-Tao file `.env` tu `.env.example`, roi dien:
+Tao file `.env` roi dien:
 
 ```env
 DATABASE_URL="your-postgres-url"
 JWT_SECRET="your-long-random-secret"
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="your-password"
+GETKEY_GAME="PUBG"
+GETKEY_SECRET="Vm8Lk7Uj2JmsjCPVPVjrLa7zgfx3uz9E"
 ```
+
+`GETKEY_SECRET` phai giong secret hardcode trong native Android neu ban muon token validate dung.
 
 ## Flow dung de setup va deploy
 
@@ -87,8 +93,6 @@ npm run prisma:deploy
 npm run seed-admin
 ```
 
-Route login khong tu tao admin nua. Neu DB chua co admin, ban phai chay seed truoc.
-
 ## Chay local
 
 ```bash
@@ -99,39 +103,6 @@ Mo:
 
 - `http://localhost:3000/login`
 - `http://localhost:3000/admin/licenses`
-
-## Deploy Vercel
-
-1. Push source code len GitHub.
-2. Import project vao Vercel.
-3. Tao Postgres rieng cua ban va lay `DATABASE_URL`.
-4. Set cac bien moi truong tren Vercel:
-   - `DATABASE_URL`
-   - `JWT_SECRET`
-   - `ADMIN_USERNAME`
-   - `ADMIN_PASSWORD`
-5. Chay migrate production:
-
-```bash
-npm run prisma:deploy
-```
-
-6. Chay seed admin:
-
-```bash
-npm run seed-admin
-```
-
-7. Dang nhap bang `ADMIN_USERNAME` va `ADMIN_PASSWORD`.
-
-## Loi 500 pho bien khi login
-
-- `DATABASE_URL` sai hoac database khong ket noi duoc.
-- Database production chua duoc migrate.
-- Chua chay `npm run seed-admin`.
-- Thieu `JWT_SECRET`.
-
-Khi can debug tren Vercel, xem log cua route `POST /api/admin/login`.
 
 ## API verify
 
@@ -160,55 +131,39 @@ Response mau:
 }
 ```
 
-## Python client mau
+## API get key Android
 
-```python
-import hashlib
-import sys
-import uuid
+Request:
 
-import requests
+```http
+POST /connect
+hoac
+POST /api/connect
+Content-Type: application/x-www-form-urlencoded
+```
 
+```text
+game=PUBG&user_key=KEY-ABC-123&serial=generated-device-uuid
+```
 
-def get_machine_code():
-    mac = uuid.getnode()
-    h = hashlib.sha256(str(mac).encode()).hexdigest()
-    return h[:32]
+Response thanh cong:
 
+```json
+{
+  "status": true,
+  "data": {
+    "token": "md5(game-user_key-serial-secret)",
+    "rng": 1711711711,
+    "EXP": "2026-12-31T23:59:59.000Z"
+  }
+}
+```
 
-def verify_license(api_url, license_key):
-    machine_code = get_machine_code()
+Response loi:
 
-    try:
-        response = requests.post(
-            f"{api_url.rstrip('/')}/api/verify",
-            json={
-                "license_key": license_key,
-                "machine_code": machine_code,
-            },
-            timeout=15,
-        )
-    except requests.RequestException as exc:
-        print(f"Khong the ket noi server license: {exc}")
-        sys.exit()
-
-    try:
-        data = response.json()
-    except ValueError:
-        print("Server tra ve du lieu khong hop le")
-        sys.exit()
-
-    if not response.ok or not data.get("valid"):
-        print(data.get("message", "Xac minh license that bai"))
-        sys.exit()
-
-    print("Key kha dung. Bat dau chay tool...")
-    return True
-
-
-if __name__ == "__main__":
-    API_URL = "https://your-domain.vercel.app"
-    license_key = input("Nhap license key: ").strip()
-    verify_license(API_URL, license_key)
-    print("Tool dang chay...")
+```json
+{
+  "status": false,
+  "reason": "Key da het han"
+}
 ```

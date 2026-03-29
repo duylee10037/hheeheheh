@@ -62,6 +62,7 @@ export async function POST(request: Request) {
   const license = await prisma.license.create({
     data: {
       key: parsed.data.key,
+      type: parsed.data.type,
       note: parsed.data.note,
       expiresAt,
       isActive: parsed.data.isActive,

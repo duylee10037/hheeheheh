@@ -33,3 +33,11 @@ export function getAdminUsername() {
 export function getAdminPassword() {
   return required("ADMIN_PASSWORD");
 }
+
+export function getGetKeyGame() {
+  return process.env.GETKEY_GAME || "PUBG";
+}
+
+export function getGetKeySecret() {
+  return process.env.GETKEY_SECRET || "Vm8Lk7Uj2JmsjCPVPVjrLa7zgfx3uz9E";
+}

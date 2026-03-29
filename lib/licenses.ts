@@ -11,3 +11,7 @@ export function formatLicense(license: License) {
     expiresAt: license.expiresAt?.toISOString() ?? null,
   };
 }
+
+export function getLicenseTypeLabel(type: License["type"]) {
+  return type === "CPP" ? "C++ project" : "Python tool";
+}

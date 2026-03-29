@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum LicenseType {
+  PYTHON
+  CPP
+}
+
 model Admin {
   id           String   @id @default(cuid())
   username     String   @unique
@@ -15,11 +20,12 @@ model Admin {
 }
 
 model License {
-  id          String   @id @default(cuid())
-  key         String   @unique
-  note        String   @default("")
+  id          String      @id @default(cuid())
+  key         String      @unique
+  type        LicenseType @default(PYTHON)
+  note        String      @default("")
   machineCode String?
   expiresAt   DateTime?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
 }

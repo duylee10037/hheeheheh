@@ -6,19 +6,25 @@ import { getAdminPassword, getAdminUsername } from "@/lib/env";
 export async function seedAdminFromEnv() {
   const username = getAdminUsername();
   const password = getAdminPassword();
+  const passwordHash = await bcrypt.hash(password, 12);
 
   const existing = await prisma.admin.findUnique({
     where: { username },
   });
 
   if (existing) {
+    const updatedAdmin = await prisma.admin.update({
+      where: { id: existing.id },
+      data: { passwordHash },
+    });
+
     return {
-      admin: existing,
+      admin: updatedAdmin,
       created: false,
+      updated: true,
     };
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
   const admin = await prisma.admin.create({
     data: {
       username,
@@ -29,5 +35,6 @@ export async function seedAdminFromEnv() {
   return {
     admin,
     created: true,
+    updated: false,
   };
 }
